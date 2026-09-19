@@ -1,7 +1,7 @@
 {
     "id": "connector-pop3reader",
     "name": "POP3 Reader Connector",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "X Connections",
     "description": "Settings panel for the POP3 Reader source connector (web administrator equivalent of the Swing ConnectorSettingsPanel).",
     "oie": { "apiMin": "4.6" },

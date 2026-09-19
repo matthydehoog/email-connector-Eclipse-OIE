@@ -6,7 +6,7 @@
 
   <groupId>com.matthy.oie</groupId>
   <artifactId>pop3-reader-connector</artifactId>
-  <version>2.0.0</version>
+  <version>2.1.0</version>
   <packaging>jar</packaging>
 
   <name>OIE POP3 Reader Connector</name>

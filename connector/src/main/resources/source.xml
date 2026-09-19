@@ -1,7 +1,7 @@
 <connectorMetaData path="pop3-reader">
 	<name>POP3 Reader</name>
 	<author>X Connections</author>
-	<pluginVersion>2.0.0</pluginVersion>
+	<pluginVersion>2.1.0</pluginVersion>
 	<mirthVersion>4.6.0</mirthVersion>
 	<url>https://x-connections.info</url>
 	<description>This connector allows Open Integration Engine to poll a POP3 mailbox and hand every mail to the channel as a plain-text XML message (subject, from, to, sentDate, body).</description>

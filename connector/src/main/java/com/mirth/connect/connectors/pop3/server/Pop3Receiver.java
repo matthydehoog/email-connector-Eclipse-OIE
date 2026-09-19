@@ -17,7 +17,7 @@ import com.mirth.connect.server.controllers.ControllerFactory;
 import com.mirth.connect.server.controllers.EventController;
 
 /**
- * Source connector that polls one POP3 mailbox and hands every mail to the
+ * Source connector that polls one POP3 or IMAP mailbox and hands every mail to the
  * channel as a plain-text XML envelope. Scheduling comes from the standard
  * polling settings of the source connector (PollConnector).
  */
@@ -59,21 +59,13 @@ public class Pop3Receiver extends PollConnector {
             try {
                 port = Integer.parseInt(connectorProperties.getPort().trim());
             } catch (NumberFormatException e) {
-                reportError("Invalid POP3 port \"" + connectorProperties.getPort() + "\"", e);
+                reportError("Invalid " + connectorProperties.getMailProtocol() + " port \"" + connectorProperties.getPort() + "\"", e);
                 return;
             }
 
-            Pop3Poller poller = new Pop3Poller(
-                    connectorProperties.getHost().trim(),
-                    port,
-                    connectorProperties.isUseSsl(),
-                    connectorProperties.getUsername(),
-                    connectorProperties.getPassword(),
-                    connectorProperties.isDeleteAfterFetch());
-
-            poller.poll(this::dispatchMail);
+            new Pop3Poller(connectorProperties, port).poll(this::dispatchMail);
         } catch (Throwable t) {
-            reportError("POP3 poll of " + connectorProperties.getUsername() + "@" + connectorProperties.getHost() + " failed", t);
+            reportError(connectorProperties.getMailProtocol() + " poll of " + connectorProperties.getUsername() + "@" + connectorProperties.getHost() + " failed", t);
         } finally {
             dispatchStatus(ConnectionStatusEventType.IDLE);
         }

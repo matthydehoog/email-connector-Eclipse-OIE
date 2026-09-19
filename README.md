@@ -1,6 +1,6 @@
-# POP3 Reader for Eclipse OIE
+# POP3 / IMAP Reader for Eclipse OIE
 
-A **source connector type** for [Eclipse Open Integration Engine](https://openintegrationengine.org/) (tested on **4.6.0**) that polls a POP3 mailbox and hands every mail to the channel as a small plain-text XML document. Choose "POP3 Reader" as the Source of a channel in the Swing client or the web administrator.
+A **source connector type** for [Eclipse Open Integration Engine](https://openintegrationengine.org/) (tested on **4.6.0**) that polls a **POP3 or IMAP** mailbox and hands every mail to the channel as a small plain-text XML document. Choose "POP3 Reader" as the Source of a channel in the Swing client or the web administrator and pick the protocol (POP3 or IMAP) in its settings.
 
 > Community extension. It is not part of, or endorsed by, the Eclipse OIE project.
 
@@ -9,7 +9,7 @@ The extension lives in [`connector/`](connector).
 ## What you get
 
 - "POP3 Reader" in the Source connector type list of the **Swing client** and the **web administrator**.
-- Settings per channel: POP3 host, port, SSL, username, password, *Delete after fetch*, plus the engine's standard polling settings (interval, schedule, source queue, response, ...). The default polling interval is **60 seconds**.
+- Settings per channel: protocol (POP3 or IMAP), host, port, SSL, username, password, *Delete after fetch* and, for IMAP, the folder plus *Only unread* and *Mark as read*, plus the engine's standard polling settings (interval, schedule, source queue, response, ...). The default polling interval is **60 seconds**.
 - Every mail is dispatched into the channel as one raw message:
 
 ```xml
@@ -37,18 +37,25 @@ When upgrading, install the new zip over the old one and restart. If the install
 
 | Setting | Meaning | Default |
 |---|---|---|
-| POP3 Host | POP3 server, e.g. `pop.provider.com` | *(empty)* |
-| Port | 995 for POP3 over SSL, 110 for plain POP3 | `995` |
-| Use SSL | POP3S (encrypted connection) | on |
+| Protocol | `POP3` or `IMAP` | `POP3` |
+| Host | mail server, e.g. `pop.provider.com` or `imap.provider.com` | *(empty)* |
+| Port | POP3: 995 (SSL) or 110. IMAP: 993 (SSL) or 143. A default port follows the protocol and SSL choice; a custom port is left alone | `995` |
+| Use SSL | POP3S / IMAPS (encrypted connection) | on |
 | Username / Password | mailbox credentials (stored in the channel, like any connector password) | *(empty)* |
+| Folder | *IMAP only.* Folder to read | `INBOX` |
+| Only unread | *IMAP only.* Fetch only mails that are not marked as read | on |
+| Mark as read | *IMAP only.* Mark a mail as read once it was handed to the channel. Not shown when *Delete after fetch* is on | on |
 | Delete after fetch | delete a mail from the server once it was handed to the channel | **off** |
 | Polling | the engine's standard polling settings | every 60 s |
 
 ## Important behavior
 
-- **No memory of processed mail.** With *Delete after fetch* off, every poll dispatches every mail in the mailbox again. Test with a small test mailbox and switch it on once the channel works.
-- **"Handled" means dispatched.** A mail is deleted after it was accepted by the channel, not after the channel finished processing it. If dispatching fails the mail stays on the server and is tried again on the next poll.
-- One mailbox per channel.
+- **POP3 has no memory of processed mail.** With *Delete after fetch* off, every poll dispatches every mail in the mailbox again. Test with a small test mailbox and switch it on once the channel works.
+- **IMAP remembers what it has read.** With the defaults (*Only unread* and *Mark as read* on) every mail is fetched exactly once and stays in the mailbox as a read mail. A mail is only marked as read after the channel accepted it; a mail that could not be dispatched stays unread and is tried again on the next poll. Reading a mail does not mark it as read by itself.
+- If you turn *Only unread* off and neither mark nor delete, every poll dispatches every mail in the folder again.
+- **"Handled" means dispatched.** A mail is marked or deleted after it was accepted by the channel, not after the channel finished processing it. If dispatching fails the mail stays on the server and is tried again on the next poll.
+- One mailbox (and for IMAP one folder) per channel. Channels saved with an earlier version keep working as POP3.
+- IMAP uses a plain connection or IMAPS. STARTTLS and OAuth2 logins are not supported.
 
 ## Logging
 
@@ -86,7 +93,7 @@ Requirements: a JDK 11+ (the runtime bundled with the engine, `<OIE_HOME>/jre`, 
    pop3-reader/
    ├── source.xml
    ├── pop3reader-shared.jar      (settings class, used by server and clients)
-   ├── pop3reader-server.jar      (receiver + POP3 poller)
+   ├── pop3reader-server.jar      (receiver + POP3/IMAP poller)
    ├── pop3reader-client.jar      (Swing settings panel)
    ├── webadmin/                  (web administrator panel: plugin.json + web/plugin.js)
    └── lib/                       (jakarta.mail, angus-mail and their activation libraries)

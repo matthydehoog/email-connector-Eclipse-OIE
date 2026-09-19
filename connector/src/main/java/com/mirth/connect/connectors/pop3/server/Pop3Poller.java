@@ -22,32 +22,44 @@ import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.internet.MimePart;
 import jakarta.mail.internet.MimePartDataSource;
 import jakarta.mail.internet.MimeUtility;
+import jakarta.mail.search.FlagTerm;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mirth.connect.connectors.pop3.shared.Pop3ReceiverProperties;
+
 /**
- * Connects to one POP3 mailbox, reads whatever is waiting, hands each message to a
- * callback as a simple XML string and (optionally) deletes it from the server.
- * No dependency on the engine; Pop3Receiver wires it into the channel.
+ * Connects to one POP3 or IMAP mailbox, reads whatever is waiting, hands each
+ * message to a callback as a simple XML string and afterwards (optionally)
+ * deletes it from the server or, for IMAP, marks it as read. No dependency on
+ * the engine; Pop3Receiver wires it into the channel.
  */
 public class Pop3Poller {
 
     private final Logger logger = LogManager.getLogger(getClass());
+    private final boolean imap;
     private final String host;
     private final int port;
     private final boolean useSsl;
     private final String username;
     private final String password;
+    private final String folderName;
+    private final boolean unreadOnly;
+    private final boolean markAsRead;
     private final boolean deleteAfterFetch;
 
-    public Pop3Poller(String host, int port, boolean useSsl, String username, String password, boolean deleteAfterFetch) {
-        this.host = host;
+    public Pop3Poller(Pop3ReceiverProperties properties, int port) {
+        this.imap = properties.isImap();
+        this.host = properties.getHost().trim();
         this.port = port;
-        this.useSsl = useSsl;
-        this.username = username;
-        this.password = password;
-        this.deleteAfterFetch = deleteAfterFetch;
+        this.useSsl = properties.isUseSsl();
+        this.username = properties.getUsername();
+        this.password = properties.getPassword();
+        this.folderName = properties.getFolder().trim();
+        this.unreadOnly = properties.isUnreadOnly();
+        this.markAsRead = properties.isMarkAsRead();
+        this.deleteAfterFetch = properties.isDeleteAfterFetch();
     }
 
     public interface MessageHandler {
@@ -65,31 +77,39 @@ public class Pop3Poller {
      * does not keep a connection open between polls.
      */
     public void poll(MessageHandler handler) throws MessagingException {
+        String label = imap ? "IMAP" : "POP3";
+        String protocol = (imap ? "imap" : "pop3") + (useSsl ? "s" : "");
+        // Only IMAP has a read flag; POP3 can just delete.
+        boolean setSeen = imap && markAsRead && !deleteAfterFetch;
+
         Properties mailProps = new Properties();
-        String protocol = useSsl ? "pop3s" : "pop3";
         mailProps.setProperty("mail.store.protocol", protocol);
         mailProps.setProperty("mail." + protocol + ".host", host);
         mailProps.setProperty("mail." + protocol + ".port", String.valueOf(port));
         mailProps.setProperty("mail." + protocol + ".connectiontimeout", "15000");
         mailProps.setProperty("mail." + protocol + ".timeout", "15000");
+        if (imap) {
+            // Reading a mail must not mark it as read: only a successfully dispatched mail may be.
+            mailProps.setProperty("mail." + protocol + ".peek", "true");
+        }
 
         Session session = Session.getInstance(mailProps);
         Store store = null;
-        Folder inbox = null;
+        Folder folder = null;
 
         try {
             store = session.getStore(protocol);
-            store.connect(host, port,
-                    username, password);
+            store.connect(host, port, username, password);
 
-            inbox = store.getFolder("INBOX");
-            // POP3 requires READ_WRITE to delete messages; harmless if
-            // deleteAfterFetch is off.
-            inbox.open(deleteAfterFetch ? Folder.READ_WRITE : Folder.READ_ONLY);
+            folder = store.getFolder(imap ? folderName : "INBOX");
+            // Deleting (and, on IMAP, setting the read flag) needs write access.
+            folder.open(deleteAfterFetch || setSeen ? Folder.READ_WRITE : Folder.READ_ONLY);
 
-            Message[] messages = inbox.getMessages();
-            logger.info("POP3 poll of {}@{}: {} message(s) found",
-                    username, host, messages.length);
+            Message[] messages = imap && unreadOnly
+                    ? folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false))
+                    : folder.getMessages();
+            logger.info("{} poll of {}@{}{}: {} message(s) found", label, username, host,
+                    imap ? "/" + folderName : "", messages.length);
 
             for (Message message : messages) {
                 try {
@@ -97,13 +117,15 @@ public class Pop3Poller {
                     boolean handled = handler.handle(xml);
                     if (handled && deleteAfterFetch) {
                         message.setFlag(Flags.Flag.DELETED, true);
+                    } else if (handled && setSeen) {
+                        message.setFlag(Flags.Flag.SEEN, true);
                     }
                 } catch (Exception e) {
-                    logger.error("Failed to process one POP3 message; leaving it on the server", e);
+                    logger.error("Failed to process one {} message; leaving it on the server", label, e);
                 }
             }
         } finally {
-            closeQuietly(inbox, deleteAfterFetch);
+            closeQuietly(folder, deleteAfterFetch);
             closeQuietly(store);
         }
     }
