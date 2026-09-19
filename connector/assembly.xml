@@ -6,7 +6,7 @@
     <format>zip</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
-  <baseDirectory>pop3-reader</baseDirectory>
+  <baseDirectory>email-reader</baseDirectory>
 
   <files>
     <file>
@@ -16,17 +16,17 @@
     <file>
       <source>${project.build.directory}/${project.build.finalName}-shared.jar</source>
       <outputDirectory>/</outputDirectory>
-      <destName>pop3reader-shared.jar</destName>
+      <destName>emailreader-shared.jar</destName>
     </file>
     <file>
       <source>${project.build.directory}/${project.build.finalName}-server.jar</source>
       <outputDirectory>/</outputDirectory>
-      <destName>pop3reader-server.jar</destName>
+      <destName>emailreader-server.jar</destName>
     </file>
     <file>
       <source>${project.build.directory}/${project.build.finalName}-client.jar</source>
       <outputDirectory>/</outputDirectory>
-      <destName>pop3reader-client.jar</destName>
+      <destName>emailreader-client.jar</destName>
     </file>
   </files>
 

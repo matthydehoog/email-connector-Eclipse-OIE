@@ -1,4 +1,4 @@
-package com.mirth.connect.connectors.pop3.server;
+package com.mirth.connect.connectors.email.server;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,15 +27,15 @@ import jakarta.mail.search.FlagTerm;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mirth.connect.connectors.pop3.shared.Pop3ReceiverProperties;
+import com.mirth.connect.connectors.email.shared.EmailReceiverProperties;
 
 /**
  * Connects to one POP3 or IMAP mailbox, reads whatever is waiting, hands each
  * message to a callback as a simple XML string and afterwards (optionally)
  * deletes it from the server or, for IMAP, marks it as read. No dependency on
- * the engine; Pop3Receiver wires it into the channel.
+ * the engine; EmailReceiver wires it into the channel.
  */
-public class Pop3Poller {
+public class EmailPoller {
 
     private final Logger logger = LogManager.getLogger(getClass());
     private final boolean imap;
@@ -49,7 +49,7 @@ public class Pop3Poller {
     private final boolean markAsRead;
     private final boolean deleteAfterFetch;
 
-    public Pop3Poller(Pop3ReceiverProperties properties, int port) {
+    public EmailPoller(EmailReceiverProperties properties, int port) {
         this.imap = properties.isImap();
         this.host = properties.getHost().trim();
         this.port = port;

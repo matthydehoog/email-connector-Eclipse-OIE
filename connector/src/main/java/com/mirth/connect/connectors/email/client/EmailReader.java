@@ -1,4 +1,4 @@
-package com.mirth.connect.connectors.pop3.client;
+package com.mirth.connect.connectors.email.client;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
@@ -11,13 +11,13 @@ import com.mirth.connect.client.ui.components.MirthComboBox;
 import com.mirth.connect.client.ui.components.MirthPasswordField;
 import com.mirth.connect.client.ui.components.MirthTextField;
 import com.mirth.connect.client.ui.panels.connectors.ConnectorSettingsPanel;
-import com.mirth.connect.connectors.pop3.shared.Pop3ReceiverProperties;
+import com.mirth.connect.connectors.email.shared.EmailReceiverProperties;
 import com.mirth.connect.donkey.model.channel.ConnectorProperties;
 
-/** Swing settings panel of the "POP3 Reader" source connector (POP3 and IMAP). */
-public class Pop3Reader extends ConnectorSettingsPanel {
+/** Swing settings panel of the "Email Reader" source connector (POP3 and IMAP). */
+public class EmailReader extends ConnectorSettingsPanel {
 
-    public Pop3Reader() {
+    public EmailReader() {
         initComponents();
         initLayout();
         updateProtocolFields();
@@ -25,14 +25,14 @@ public class Pop3Reader extends ConnectorSettingsPanel {
 
     @Override
     public String getConnectorName() {
-        return new Pop3ReceiverProperties().getName();
+        return new EmailReceiverProperties().getName();
     }
 
     @Override
     public ConnectorProperties getProperties() {
-        Pop3ReceiverProperties properties = new Pop3ReceiverProperties();
+        EmailReceiverProperties properties = new EmailReceiverProperties();
 
-        properties.setMailProtocol(isImapSelected() ? Pop3ReceiverProperties.MAIL_IMAP : Pop3ReceiverProperties.MAIL_POP3);
+        properties.setMailProtocol(isImapSelected() ? EmailReceiverProperties.MAIL_IMAP : EmailReceiverProperties.MAIL_POP3);
         properties.setHost(hostField.getText().trim());
         properties.setPort(portField.getText().trim());
         properties.setUseSsl(sslCheckBox.isSelected());
@@ -48,7 +48,7 @@ public class Pop3Reader extends ConnectorSettingsPanel {
 
     @Override
     public void setProperties(ConnectorProperties properties) {
-        Pop3ReceiverProperties props = (Pop3ReceiverProperties) properties;
+        EmailReceiverProperties props = (EmailReceiverProperties) properties;
 
         // The listeners must not rewrite the port while the saved values are being loaded.
         loading = true;
@@ -71,12 +71,12 @@ public class Pop3Reader extends ConnectorSettingsPanel {
 
     @Override
     public ConnectorProperties getDefaults() {
-        return new Pop3ReceiverProperties();
+        return new EmailReceiverProperties();
     }
 
     @Override
     public boolean checkProperties(ConnectorProperties properties, boolean highlight) {
-        Pop3ReceiverProperties props = (Pop3ReceiverProperties) properties;
+        EmailReceiverProperties props = (EmailReceiverProperties) properties;
 
         boolean valid = true;
 
@@ -129,7 +129,7 @@ public class Pop3Reader extends ConnectorSettingsPanel {
     }
 
     private boolean isImapSelected() {
-        return Pop3ReceiverProperties.MAIL_IMAP.equals(protocolComboBox.getSelectedItem());
+        return EmailReceiverProperties.MAIL_IMAP.equals(protocolComboBox.getSelectedItem());
     }
 
     /** Shows the IMAP-only fields for IMAP. Marking as read is pointless when the mail is deleted anyway. */
@@ -148,9 +148,9 @@ public class Pop3Reader extends ConnectorSettingsPanel {
 
     /** A default port (110/143/993/995) follows the protocol and SSL choice; a custom port is left alone. */
     private void protocolOrSslChanged() {
-        if (!loading && Pop3ReceiverProperties.isDefaultPort(portField.getText().trim())) {
-            String mailProtocol = isImapSelected() ? Pop3ReceiverProperties.MAIL_IMAP : Pop3ReceiverProperties.MAIL_POP3;
-            portField.setText(Pop3ReceiverProperties.defaultPort(mailProtocol, sslCheckBox.isSelected()));
+        if (!loading && EmailReceiverProperties.isDefaultPort(portField.getText().trim())) {
+            String mailProtocol = isImapSelected() ? EmailReceiverProperties.MAIL_IMAP : EmailReceiverProperties.MAIL_POP3;
+            portField.setText(EmailReceiverProperties.defaultPort(mailProtocol, sslCheckBox.isSelected()));
         }
         updateProtocolFields();
     }
@@ -160,7 +160,7 @@ public class Pop3Reader extends ConnectorSettingsPanel {
 
         protocolLabel = new JLabel("Protocol:");
         protocolComboBox = new MirthComboBox<String>();
-        protocolComboBox.setModel(new DefaultComboBoxModel<String>(new String[] { Pop3ReceiverProperties.MAIL_POP3, Pop3ReceiverProperties.MAIL_IMAP }));
+        protocolComboBox.setModel(new DefaultComboBoxModel<String>(new String[] { EmailReceiverProperties.MAIL_POP3, EmailReceiverProperties.MAIL_IMAP }));
         protocolComboBox.setToolTipText("POP3 downloads what is in the mailbox. IMAP can read one folder and keep track of read mails.");
         protocolComboBox.addActionListener(evt -> protocolOrSslChanged());
 

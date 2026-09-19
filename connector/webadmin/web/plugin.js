@@ -1,4 +1,4 @@
-// POP3 Reader source connector (POP3 and IMAP) - settings panel for the web administrator.
+// Email Reader source connector (POP3 and IMAP) - settings panel for the web administrator.
 // Engine-hosted plugins are loaded as a single blob module, so only bare @oie/*
 // imports (resolved through the page's import map) are available. The form
 // building blocks come from @oie/web-ui; React comes from the platform object.
@@ -12,8 +12,8 @@ import {
   defaultPollProperties
 } from "@oie/web-ui";
 
-const PROPERTIES_CLASS = "com.mirth.connect.connectors.pop3.shared.Pop3ReceiverProperties";
-const CONNECTOR_NAME = "POP3 Reader";
+const PROPERTIES_CLASS = "com.mirth.connect.connectors.email.shared.EmailReceiverProperties";
+const CONNECTOR_NAME = "Email Reader";
 
 const isImap = (p) => p.mailProtocol === "IMAP";
 
@@ -26,7 +26,7 @@ function syncPort(properties) {
   }
 }
 
-export function createPop3Reader(platform) {
+export function createEmailReader(platform) {
   return {
     defaults(version) {
       return {
@@ -106,7 +106,7 @@ export function createPop3Reader(platform) {
       );
     },
 
-    // Mirrors the Swing panel (Pop3Reader.checkProperties).
+    // Mirrors the Swing panel (EmailReader.checkProperties).
     validate(properties) {
       const errors = requireFields(properties, [
         { key: "host", label: "Host" },
@@ -124,5 +124,5 @@ export function createPop3Reader(platform) {
 }
 
 export function register(platform) {
-  platform.registerConnectorPanel(CONNECTOR_NAME, "SOURCE", createPop3Reader(platform));
+  platform.registerConnectorPanel(CONNECTOR_NAME, "SOURCE", createEmailReader(platform));
 }

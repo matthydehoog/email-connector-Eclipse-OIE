@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.matthy.oie</groupId>
-  <artifactId>pop3-reader-connector</artifactId>
-  <version>2.1.0</version>
+  <artifactId>email-reader-connector</artifactId>
+  <version>3.0.0</version>
   <packaging>jar</packaging>
 
-  <name>OIE POP3 Reader Connector</name>
+  <name>OIE Email Reader Connector</name>
   <description>
-    Source connector for Eclipse Open Integration Engine that polls a POP3 mailbox
+    Source connector for Eclipse Open Integration Engine that polls a POP3 or IMAP mailbox
     and hands every mail to the channel as a plain-text XML message.
   </description>
 
@@ -114,7 +114,7 @@
             <goals><goal>jar</goal></goals>
             <configuration>
               <classifier>shared</classifier>
-              <includes><include>com/mirth/connect/connectors/pop3/shared/**</include></includes>
+              <includes><include>com/mirth/connect/connectors/email/shared/**</include></includes>
             </configuration>
           </execution>
           <execution>
@@ -123,7 +123,7 @@
             <goals><goal>jar</goal></goals>
             <configuration>
               <classifier>server</classifier>
-              <includes><include>com/mirth/connect/connectors/pop3/server/**</include></includes>
+              <includes><include>com/mirth/connect/connectors/email/server/**</include></includes>
             </configuration>
           </execution>
           <execution>
@@ -132,7 +132,7 @@
             <goals><goal>jar</goal></goals>
             <configuration>
               <classifier>client</classifier>
-              <includes><include>com/mirth/connect/connectors/pop3/client/**</include></includes>
+              <includes><include>com/mirth/connect/connectors/email/client/**</include></includes>
             </configuration>
           </execution>
         </executions>

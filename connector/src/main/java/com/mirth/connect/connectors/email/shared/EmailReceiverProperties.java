@@ -1,4 +1,4 @@
-package com.mirth.connect.connectors.pop3.shared;
+package com.mirth.connect.connectors.email.shared;
 
 import java.util.Map;
 
@@ -12,7 +12,7 @@ import com.mirth.connect.donkey.model.channel.SourceConnectorPropertiesInterface
 import com.mirth.connect.donkey.util.DonkeyElement;
 
 /**
- * Settings of the "POP3 Reader" source connector, which reads a POP3 or an IMAP
+ * Settings of the "Email Reader" source connector, which reads a POP3 or an IMAP
  * mailbox. Shared between the server, the Swing administrator and (as JSON) the
  * web administrator.
  *
@@ -20,8 +20,8 @@ import com.mirth.connect.donkey.util.DonkeyElement;
  * saved before IMAP support existed has null/false for the newer fields. The
  * getters therefore fall back to the POP3 behaviour those channels always had.
  */
-public class Pop3ReceiverProperties extends ConnectorProperties implements PollConnectorPropertiesInterface, SourceConnectorPropertiesInterface {
-    public static final String NAME = "POP3 Reader";
+public class EmailReceiverProperties extends ConnectorProperties implements PollConnectorPropertiesInterface, SourceConnectorPropertiesInterface {
+    public static final String NAME = "Email Reader";
 
     public static final String MAIL_POP3 = "POP3";
     public static final String MAIL_IMAP = "IMAP";
@@ -42,7 +42,7 @@ public class Pop3ReceiverProperties extends ConnectorProperties implements PollC
     private boolean unreadOnly;
     private boolean markAsRead;
 
-    public Pop3ReceiverProperties() {
+    public EmailReceiverProperties() {
         pollConnectorProperties = new PollConnectorProperties();
         // The engine default of 5 seconds is far too eager for a mailbox.
         pollConnectorProperties.setPollingFrequency(60000);

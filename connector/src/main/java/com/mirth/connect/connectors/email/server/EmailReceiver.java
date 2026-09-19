@@ -1,9 +1,9 @@
-package com.mirth.connect.connectors.pop3.server;
+package com.mirth.connect.connectors.email.server;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.mirth.connect.connectors.pop3.shared.Pop3ReceiverProperties;
+import com.mirth.connect.connectors.email.shared.EmailReceiverProperties;
 import com.mirth.connect.donkey.model.event.ConnectionStatusEventType;
 import com.mirth.connect.donkey.model.event.ErrorEventType;
 import com.mirth.connect.donkey.model.message.RawMessage;
@@ -21,15 +21,15 @@ import com.mirth.connect.server.controllers.EventController;
  * channel as a plain-text XML envelope. Scheduling comes from the standard
  * polling settings of the source connector (PollConnector).
  */
-public class Pop3Receiver extends PollConnector {
+public class EmailReceiver extends PollConnector {
     private final Logger logger = LogManager.getLogger(getClass());
 
     private final EventController eventController = ControllerFactory.getFactory().createEventController();
-    private Pop3ReceiverProperties connectorProperties;
+    private EmailReceiverProperties connectorProperties;
 
     @Override
     public void onDeploy() throws ConnectorTaskException {
-        connectorProperties = (Pop3ReceiverProperties) getConnectorProperties();
+        connectorProperties = (EmailReceiverProperties) getConnectorProperties();
         dispatchStatus(ConnectionStatusEventType.IDLE);
     }
 
@@ -63,7 +63,7 @@ public class Pop3Receiver extends PollConnector {
                 return;
             }
 
-            new Pop3Poller(connectorProperties, port).poll(this::dispatchMail);
+            new EmailPoller(connectorProperties, port).poll(this::dispatchMail);
         } catch (Throwable t) {
             reportError(connectorProperties.getMailProtocol() + " poll of " + connectorProperties.getUsername() + "@" + connectorProperties.getHost() + " failed", t);
         } finally {
