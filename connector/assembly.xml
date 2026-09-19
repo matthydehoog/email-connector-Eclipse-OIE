@@ -1,0 +1,49 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+  <id>extension</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <baseDirectory>pop3-reader</baseDirectory>
+
+  <files>
+    <file>
+      <source>src/main/resources/source.xml</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>${project.build.directory}/${project.build.finalName}-shared.jar</source>
+      <outputDirectory>/</outputDirectory>
+      <destName>pop3reader-shared.jar</destName>
+    </file>
+    <file>
+      <source>${project.build.directory}/${project.build.finalName}-server.jar</source>
+      <outputDirectory>/</outputDirectory>
+      <destName>pop3reader-server.jar</destName>
+    </file>
+    <file>
+      <source>${project.build.directory}/${project.build.finalName}-client.jar</source>
+      <outputDirectory>/</outputDirectory>
+      <destName>pop3reader-client.jar</destName>
+    </file>
+  </files>
+
+  <fileSets>
+    <!-- Plugin for the web administrator (oie-web-client) -->
+    <fileSet>
+      <directory>webadmin</directory>
+      <outputDirectory>/webadmin</outputDirectory>
+    </fileSet>
+  </fileSets>
+
+  <dependencySets>
+    <!-- Mail libraries the engine does not provide (runtime scope excludes the "provided" engine jars) -->
+    <dependencySet>
+      <outputDirectory>/lib</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <scope>runtime</scope>
+    </dependencySet>
+  </dependencySets>
+</assembly>

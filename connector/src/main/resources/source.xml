@@ -1,0 +1,21 @@
+<connectorMetaData path="pop3-reader">
+	<name>POP3 Reader</name>
+	<author>X Connections</author>
+	<pluginVersion>2.0.0</pluginVersion>
+	<mirthVersion>4.6.0</mirthVersion>
+	<url>https://x-connections.info</url>
+	<description>This connector allows Open Integration Engine to poll a POP3 mailbox and hand every mail to the channel as a plain-text XML message (subject, from, to, sentDate, body).</description>
+	<clientClassName>com.mirth.connect.connectors.pop3.client.Pop3Reader</clientClassName>
+	<serverClassName>com.mirth.connect.connectors.pop3.server.Pop3Receiver</serverClassName>
+	<sharedClassName>com.mirth.connect.connectors.pop3.shared.Pop3ReceiverProperties</sharedClassName>
+	<library type="CLIENT" path="pop3reader-client.jar" />
+	<library type="SHARED" path="pop3reader-shared.jar" />
+	<library type="SERVER" path="pop3reader-server.jar" />
+	<library type="SERVER" path="lib/jakarta.mail-api-2.1.3.jar" />
+	<library type="SERVER" path="lib/jakarta.activation-api-2.1.3.jar" />
+	<library type="SERVER" path="lib/angus-mail-2.0.3.jar" />
+	<library type="SERVER" path="lib/angus-activation-2.0.2.jar" />
+	<transformers></transformers>
+	<protocol>pop3</protocol>
+	<type>SOURCE</type>
+</connectorMetaData>
