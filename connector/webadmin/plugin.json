@@ -1,7 +1,7 @@
 {
     "id": "connector-emailreader",
     "name": "Email Reader Connector",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "author": "X Connections",
     "description": "Settings panel for the Email Reader source connector (web administrator equivalent of the Swing ConnectorSettingsPanel).",
     "oie": { "apiMin": "4.6" },
