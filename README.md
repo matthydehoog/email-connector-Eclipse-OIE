@@ -111,4 +111,4 @@ Requirements: a JDK 11+ (the runtime bundled with the engine, `<OIE_HOME>/jre`, 
 
 ## License
 
-Apache License 2.0, see [LICENSE](LICENSE).
+[Mozilla Public License 2.0](LICENSE).
