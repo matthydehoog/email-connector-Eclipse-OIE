@@ -78,12 +78,13 @@ public class EmailPoller {
     }
 
     /**
-     * Connects, processes every message currently in the INBOX, then
+     * Connects, processes every message currently in the mailbox (POP3: the
+     * INBOX; IMAP: the configured folder, optionally only unread mail), then
      * disconnects. Safe to call repeatedly from a scheduled task - it
      * does not keep a connection open between polls.
      */
     public void poll(MessageHandler handler) throws MessagingException {
-        String label = imap ? "IMAP" : "POP3";
+        String label = label();
         String protocol = (imap ? "imap" : "pop3") + (useSsl ? "s" : "");
         // Only IMAP has a read flag; POP3 can just delete.
         boolean setSeen = imap && markAsRead && !deleteAfterFetch;
@@ -348,7 +349,7 @@ public class EmailPoller {
             try {
                 folder.close(expunge);
             } catch (MessagingException e) {
-                logger.warn("Error closing POP3 folder", e);
+                logger.warn("Error closing {} folder", label(), e);
             }
         }
     }
@@ -358,8 +359,13 @@ public class EmailPoller {
             try {
                 store.close();
             } catch (MessagingException e) {
-                logger.warn("Error closing POP3 store", e);
+                logger.warn("Error closing {} store", label(), e);
             }
         }
+    }
+
+    /** POP3 or IMAP, for log messages. */
+    private String label() {
+        return imap ? "IMAP" : "POP3";
     }
 }
