@@ -11,6 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import jakarta.mail.BodyPart;
@@ -24,6 +30,7 @@ import jakarta.mail.Session;
 import jakarta.mail.Store;
 import jakarta.mail.internet.ContentType;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.internet.MimePart;
 import jakarta.mail.internet.MimePartDataSource;
@@ -71,10 +78,11 @@ public class EmailPoller {
     public interface MessageHandler {
         /**
          * @param rawXml the fetched message serialized as XML
+         * @param sourceMap mail details for the channel's source map (see {@link EmailPoller#sourceMap})
          * @return true if the message was handled successfully (safe to
          *         delete from the server, if deleteAfterFetch is on)
          */
-        boolean handle(String rawXml);
+        boolean handle(String rawXml, Map<String, Object> sourceMap);
     }
 
     /**
@@ -121,7 +129,8 @@ public class EmailPoller {
             for (Message message : messages) {
                 try {
                     String xml = toXml(message);
-                    boolean handled = handler.handle(xml);
+                    boolean handled = handler.handle(xml,
+                            sourceMap(message, username + "@" + host, imap ? folderName : null, ZoneId.systemDefault()));
                     if (handled && deleteAfterFetch) {
                         message.setFlag(Flags.Flag.DELETED, true);
                     } else if (handled && setSeen) {
@@ -156,7 +165,41 @@ public class EmailPoller {
         return xml.toString();
     }
 
-    private String addressesToString(jakarta.mail.Address[] addresses) {
+    /**
+     * The mail details for the channel's source map, so filters and destinations can use
+     * them without parsing the XML: subject, from, to, messageId, sentDate (ISO 8601),
+     * mailbox (user@host) and, for IMAP, folder. A missing value is an empty string.
+     */
+    static Map<String, Object> sourceMap(Message message, String mailbox, String folder, ZoneId zone)
+            throws MessagingException {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("subject", removeInvalidXmlChars(nullToEmpty(message.getSubject())));
+        map.put("from", addressesToString(message.getFrom()));
+        map.put("to", addressesToString(message.getRecipients(Message.RecipientType.TO)));
+        map.put("messageId", messageId(message));
+        Date sent = message.getSentDate();
+        map.put("sentDate", sent == null ? ""
+                : OffsetDateTime.ofInstant(sent.toInstant(), zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        map.put("mailbox", mailbox);
+        if (folder != null) {
+            map.put("folder", folder);
+        }
+        return map;
+    }
+
+    private static String messageId(Message message) throws MessagingException {
+        if (message instanceof MimeMessage) {
+            return nullToEmpty(((MimeMessage) message).getMessageID()).trim();
+        }
+        String[] header = message.getHeader("Message-ID");
+        return header == null || header.length == 0 ? "" : nullToEmpty(header[0]).trim();
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static String addressesToString(jakarta.mail.Address[] addresses) {
         if (addresses == null) {
             return "";
         }

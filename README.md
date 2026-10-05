@@ -24,6 +24,28 @@ The extension lives in [`connector/`](connector).
 
 The body is plain text only: in a `multipart/alternative` mail the `text/plain` part wins, HTML is converted to text only when there is no plain-text part, attachments and other non-text parts are skipped, illegal XML characters are removed. Set the channel's **inbound data type** to XML (or Raw) to parse it in a transformer.
 
+### Source map
+
+The mail details are also put in the **source map** of every message, so filters and destinations can use them without parsing the XML. They are visible in the message browser under *Mappings* → *Source Map*.
+
+| Variable | Contents | Example |
+|---|---|---|
+| `subject` | subject (decoded) | `Lab result 12345` |
+| `from` | sender address(es), comma separated | `lab@lab.example.org` |
+| `to` | *To* address(es), comma separated | `intake@example.org` |
+| `messageId` | the `Message-ID` header | `<abc123@lab.example.org>` |
+| `sentDate` | sent date in ISO 8601, in the server's time zone | `2026-09-17T08:12:00+02:00` |
+| `mailbox` | the mailbox that was polled (`username@host`) | `intake@imap.example.org` |
+| `folder` | *IMAP only.* the folder that was polled | `INBOX` |
+
+A value the mail does not have (no subject, no date) is an empty string, so a filter does not need a null check:
+
+```javascript
+return $('from').indexOf('@lab.example.org') > -1;
+```
+
+The `<sentDate>` in the XML keeps its old format, so existing transformers keep working.
+
 ## Install
 
 0. Or install it from the [OIE Community Store](https://github.com/gibson9583/oie-community-store), where it is listed as **Email Reader**.

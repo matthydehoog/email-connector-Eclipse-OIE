@@ -6,6 +6,8 @@
 
 package com.mirth.connect.connectors.email.server;
 
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -78,14 +80,14 @@ public class EmailReceiver extends PollConnector {
     }
 
     /** Returns true when the mail was handed to the channel (safe to delete it from the server). */
-    private boolean dispatchMail(String rawXml) {
+    private boolean dispatchMail(String rawXml, Map<String, Object> sourceMap) {
         if (isTerminated()) {
             return false;
         }
 
         DispatchResult dispatchResult = null;
         try {
-            dispatchResult = dispatchRawMessage(new RawMessage(rawXml));
+            dispatchResult = dispatchRawMessage(new RawMessage(rawXml, null, sourceMap));
             return true;
         } catch (ChannelException e) {
             // The engine has already logged the reason; leave the mail on the server.
