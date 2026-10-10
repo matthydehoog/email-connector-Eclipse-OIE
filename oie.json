@@ -5,7 +5,7 @@
   "description": "Source connector that polls a POP3 or IMAP mailbox and hands every mail to the channel as an XML message (subject, from, to, sentDate, body), with the mail details also in the source map.",
   "type": "connector",
   "ui": ["web", "swing"],
-  "version": "3.1.0",
+  "version": "3.1.1",
   "minEngineVersion": "4.6.0",
   "maxEngineVersion": null,
   "filename": "email-reader-connector-{version}.zip",
