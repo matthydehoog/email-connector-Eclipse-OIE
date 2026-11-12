@@ -228,9 +228,16 @@ cd connector
 mvn test
 ```
 
-`EmailPollerSourceMapTest` (JUnit 5, 3 tests) parses mails from text with `MimeMessage` and checks the source map: all variables for IMAP, the time zone of `sentDate`, and empty values for missing headers with POP3. It needs no mail server.
+`mvn package` runs the same tests. All are JUnit 5; none needs a mail server of your own.
 
-The connection, the reading and the marking or deleting are not covered by automated tests: they need a mail server. Test them by hand (below), or add tests against an in-process mail server if you change that part.
+| Test | Covers |
+| --- | --- |
+| `EmailPollerTextTest` | `htmlToText` (markup, scripts, lists, table cells, entities), `cleanText` (line endings, non-breaking spaces, blank lines) and `removeInvalidXmlChars`. |
+| `EmailPollerXmlTest` | The XML a mail becomes: plain and HTML mail, multipart/alternative (plain wins, HTML as fallback), multipart/mixed (text parts joined, attachments skipped), charsets including an unknown one, and a `]]>` in the body. Parses mails from text with `MimeMessage`. |
+| `EmailPollerSourceMapTest` | The source map: all variables for IMAP, the time zone of `sentDate`, and empty values for missing headers with POP3. |
+| `EmailPollerGreenMailTest` | `EmailPoller.poll` against an in-process [GreenMail](https://greenmail-mail-test.github.io/greenmail/) POP3 and IMAP server: fetching, *Only unread*, *Mark as read*, *Delete after fetch*, and a failed dispatch (the handler returns `false` or throws), which leaves the mail on the server. |
+
+SSL connections and real providers are not covered; try those by hand (below).
 
 ## Trying it in OIE
 
@@ -242,10 +249,9 @@ The connection, the reading and the marking or deleting are not covered by autom
 
 ## GitHub workflows
 
-There is no build workflow in this repository; build and test locally before you push.
-
 | Workflow | Does |
 | --- | --- |
+| `build.yml` | Builds and tests every push and pull request against OIE 4.6.0 (Java 17) and 4.7.0 (Java 17 and 21), with the engine jars from the engine's GitHub release (`.github/scripts/install-oie-jars.sh`, cached). Checks that the four version numbers agree (`check-versions.sh`) and keeps the zip as an artifact. A pushed `v*` tag also creates the GitHub release with the zip and its SHA-256 (`release.sh`) and then runs `catalog-pr.yml`. |
 | `catalog-pr.yml` | On a published release, files a pull request to the [OIE Community Store catalog](https://github.com/gibson9583/oie-community-catalog) from the fork `<owner>/oie-community-catalog`, using `oie.json` at the tag. Needs the secret `CATALOG_TOKEN` (a classic PAT with `public_repo`); skipped without it. |
 | `jira-issue.yml` | Creates a Jira issue for every new GitHub issue and comments its key. Needs the variables `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_PROJECT_KEY` and the secret `JIRA_API_TOKEN`. |
 
@@ -254,7 +260,7 @@ There is no build workflow in this repository; build and test locally before you
 ## Releasing
 
 1. **Branch and pull request.** Reference the issue (`Closes #n`).
-2. **Version.** Set the new version in all four places; nothing checks this automatically, so compare them:
+2. **Version.** Set the new version in all four places; `build.yml` fails when they differ (`bash .github/scripts/check-versions.sh` checks it locally):
    - `connector/pom.xml` (`<version>`)
    - `connector/src/main/resources/source.xml` (`<pluginVersion>`)
    - `oie.json` (`"version"`)
@@ -270,6 +276,8 @@ There is no build workflow in this repository; build and test locally before you
    gh release create v3.1.2 email-reader-connector-3.1.2.zip email-reader-connector-3.1.2.zip.sha256 \
      --target main --title "3.1.2: …" --notes-file notes.md
    ```
+
+   Or push the tag (`git tag v3.1.2 && git push origin v3.1.2`): `build.yml` then builds, creates the release with the zip, its checksum and generated notes, and files the catalog pull request. Edit the notes afterwards. A release you create by hand first is left alone, apart from attaching the zip if it has none.
 
    Release notes say what changed for the user, how to upgrade (install over the old version within 3.x and restart; channel settings are kept), and the SHA-256.
 7. **Catalog.** Publishing the release runs `catalog-pr.yml`. Check its pull request, and close earlier ones of this connector that are still open.

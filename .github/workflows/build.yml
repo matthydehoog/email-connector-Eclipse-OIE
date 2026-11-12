@@ -1,0 +1,97 @@
+name: Build
+
+# Builds and tests every push and pull request against the engine versions the connector loads on
+# (<mirthVersion> in connector/src/main/resources/source.xml). The tests include the GreenMail
+# POP3 and IMAP tests, which need no external mail server. A pushed version tag (v3.1.2) also
+# creates the GitHub release with the zip and its SHA-256 (see .github/scripts/release.sh); a
+# release written by hand that already has the zip is left alone.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write # creating releases
+
+jobs:
+  build:
+    name: Build (OIE ${{ matrix.oie }}, Java ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The released zip is compiled against 4.6.0: keep equal to oie.version in connector/pom.xml.
+          - { oie: 4.6.0, java: '17', release: true }
+          - { oie: 4.7.0, java: '17' }
+          - { oie: 4.7.0, java: '21' }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Cache Maven repository
+        uses: actions/cache@v6
+        with:
+          path: ~/.m2/repository
+          key: maven-oie${{ matrix.oie }}-${{ hashFiles('connector/pom.xml') }}
+          restore-keys: maven-oie${{ matrix.oie }}-
+
+      - name: Install the OIE engine jars
+        run: |
+          if [ -f ~/.m2/repository/com/mirth/connect/client-core/${{ matrix.oie }}/client-core-${{ matrix.oie }}.jar ]; then
+            echo "Engine jars ${{ matrix.oie }} restored from the cache"
+          else
+            bash .github/scripts/install-oie-jars.sh "${{ matrix.oie }}" "${RUNNER_TEMP}/oie"
+          fi
+
+      - name: Check versions
+        if: matrix.release
+        run: bash .github/scripts/check-versions.sh "${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}"
+
+      - name: Build and test
+        working-directory: connector
+        run: mvn -B package -Doie.version=${{ matrix.oie }}
+
+      - name: Keep the zip
+        if: matrix.release
+        uses: actions/upload-artifact@v7
+        with:
+          name: email-reader-connector
+          path: connector/target/email-reader-connector-*.zip
+
+  release:
+    outputs:
+      created: ${{ steps.release.outputs.created }}
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: email-reader-connector
+          path: connector/target
+
+      - name: Create the release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/release.sh "${{ github.ref_name }}"
+
+  # Releases created above with GITHUB_TOKEN do not fire `release`, so call the catalog workflow here.
+  # A release published by hand fires `release` itself, and catalog-pr.yml runs on that.
+  catalog:
+    needs: release
+    if: needs.release.outputs.created == 'true'
+    uses: ./.github/workflows/catalog-pr.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      CATALOG_TOKEN: ${{ secrets.CATALOG_TOKEN }}
