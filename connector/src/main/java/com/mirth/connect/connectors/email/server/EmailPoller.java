@@ -152,7 +152,7 @@ public class EmailPoller {
      * (parsing this XML, extracting attachments, etc.) in the channel's
      * source transformer where it belongs, not in the plugin.
      */
-    private String toXml(Message message) throws MessagingException, IOException {
+    String toXml(Message message) throws MessagingException, IOException {
         StringBuilder xml = new StringBuilder();
         xml.append("<email>\n");
         xml.append("  <subject>").append(escape(message.getSubject())).append("</subject>\n");
