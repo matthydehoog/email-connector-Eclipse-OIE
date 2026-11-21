@@ -58,6 +58,25 @@ When upgrading within 3.x, install the new zip over the old one and restart. If 
 
 **Upgrading from 2.x:** the connector was called "POP3 Reader" until 2.1.0 and is now "Email Reader" (new extension folder `email-reader`, new class names). Uninstall the old "POP3 Reader" extension first and restart the engine, install 3.0.0, and recreate the channels that used it: the settings of a channel are stored under the connector name and class, so they cannot be carried over.
 
+### Administrator launchers
+
+Since 3.1.2 the plugin's jars are signed with the X Connections code-signing certificate. The certificate is self-signed. Launchers differ in how they treat that:
+
+- **The Open Integration Engine launcher and the BridgeLink launcher** don't check jar signatures and load the plugin as it is. We advise using one of these.
+- **The Mirth Connect Administrator Launcher (MCAL)** from NextGen is not open source. It checks every jar and only trusts NextGen's own certificates and certificates from a public certificate authority. It refuses self-signed jars, and unsigned ones from older versions, with this error:
+
+  ```
+  Error verifying entry "META-INF/MANIFEST.MF" in JAR file emailreader-client.jar
+  ```
+
+  To use MCAL anyway, add this line to `launcher.vmoptions` in the MCAL folder (by default `C:Program FilesMirth Connect Administrator Launcher`; editing it needs administrator rights), then restart MCAL:
+
+  ```
+  -Dallow-self-signed
+  ```
+
+  Starting MCAL with `--allow-self-signed` (or `-k`) does the same. MCAL then accepts jars signed with any self-signed certificate, from any server, so only do this on machines that connect to servers you trust. Versions before 3.1.2 are unsigned and fail in MCAL even with this option.
+
 ## Settings
 
 | Setting | Meaning | Default |
